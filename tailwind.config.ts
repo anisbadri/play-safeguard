@@ -61,7 +61,44 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Marketplace specific colors
+				marketplace: {
+					surface: 'hsl(var(--marketplace-surface))',
+					'surface-hover': 'hsl(var(--marketplace-surface-hover))',
+					border: 'hsl(var(--marketplace-border))',
+					'text-muted': 'hsl(var(--marketplace-text-muted))',
+					'text-subtle': 'hsl(var(--marketplace-text-subtle))',
+					'text-faint': 'hsl(var(--marketplace-text-faint))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))',
+					muted: 'hsl(var(--success-muted))',
+					border: 'hsl(var(--success-border))'
+				},
+				danger: {
+					DEFAULT: 'hsl(var(--danger))',
+					foreground: 'hsl(var(--danger-foreground))',
+					muted: 'hsl(var(--danger-muted))',
+					border: 'hsl(var(--danger-border))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				whatsapp: {
+					DEFAULT: 'hsl(var(--whatsapp))',
+					hover: 'hsl(var(--whatsapp-hover))'
+				},
+				verified: {
+					DEFAULT: 'hsl(var(--verified))',
+					muted: 'hsl(var(--verified-muted))',
+					border: 'hsl(var(--verified-border))'
+				},
+				star: 'hsl(var(--star))',
+				'backdrop-blur': 'hsl(var(--backdrop-blur))',
+				'backdrop-blur-light': 'hsl(var(--backdrop-blur-light))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
