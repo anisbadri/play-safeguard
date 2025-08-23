@@ -35,12 +35,12 @@ import {
 // and removing a stray inner definition. Also retains the previous fix for an
 // unterminated string constant and other compile issues.
 
-function cx(...classes: (string | boolean | null | undefined)[]): string {
+function cx(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
 // ---------- Small util + inline tests ----------
-export function formatUSD(n: number | undefined): string {
+export function formatUSD(n) {
   if (typeof n !== "number" || Number.isNaN(n)) return "USD —";
   return `USD $${n.toLocaleString("en-US")}`;
 }
@@ -52,7 +52,7 @@ console.assert(formatUSD(Number.NaN) === "USD —", "formatUSD(NaN) failed");
 console.assert(cx("a", "", null, "b") === "a b", "cx helper failed");
 
 // A couple of extra checks
-function maskCode(code: string): string {
+function maskCode(code) {
   if (!code) return "—";
   const tail = code.slice(-5);
   return `•••••••••••••••••${tail}`;
@@ -60,19 +60,13 @@ function maskCode(code: string): string {
 console.assert(maskCode("SK-ABCDE-ABCDE-ABCDE-ABCDE").endsWith("ABCDE"), "maskCode tail failed");
 
 // ---------- UI atoms ----------
-interface StatChipProps {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  tone?: "default" | "danger" | "success";
-}
-
-const StatChip: React.FC<StatChipProps> = ({ icon: Icon, label, tone = "default" }) => {
+const StatChip = ({ icon: Icon, label, tone = "default" }) => {
   const toneCls =
     tone === "danger"
-      ? "border-danger-border bg-danger-muted text-red-200"
+      ? "border-red-500/30 bg-red-500/10 text-red-200"
       : tone === "success"
-      ? "border-success-border bg-success-muted text-emerald-200"
-      : "border-marketplace-border bg-marketplace-surface text-white";
+      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+      : "border-white/10 bg-white/5 text-white";
   const iconCls =
     tone === "danger" ? "text-red-300" : tone === "success" ? "text-emerald-300" : "text-white/90";
 
@@ -84,13 +78,8 @@ const StatChip: React.FC<StatChipProps> = ({ icon: Icon, label, tone = "default"
   );
 };
 
-interface DealToggleProps {
-  value: string;
-  onChange: (value: string) => void;
-}
-
-const DealToggle: React.FC<DealToggleProps> = ({ value, onChange }) => (
-  <div className="inline-flex w-fit items-center whitespace-nowrap rounded-full bg-marketplace-surface p-0.5 border border-marketplace-border">
+const DealToggle = ({ value, onChange }) => (
+  <div className="inline-flex w-fit items-center whitespace-nowrap rounded-full bg-white/5 p-0.5 border border-white/10">
     {[
       { key: "instant", label: "Instant deal" },
       { key: "7day", label: "7 days deal" },
@@ -117,15 +106,11 @@ const DealToggle: React.FC<DealToggleProps> = ({ value, onChange }) => (
   </div>
 );
 
-interface WhatsAppButtonProps {
-  onClick: () => void;
-}
-
-const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ onClick }) => (
+const WhatsAppButton = ({ onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="inline-flex items-center justify-center gap-2 rounded-xl bg-whatsapp px-5 py-2.5 text-base font-semibold text-black hover:bg-whatsapp-hover active:translate-y-[1px] focus:outline-none focus:ring-2 focus:ring-success-border"
+    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-base font-semibold text-black hover:bg-emerald-400 active:translate-y-[1px] focus:outline-none focus:ring-2 focus:ring-emerald-300"
     aria-label="Start WhatsApp chat"
   >
     <MessageCircle className="h-5 w-5" />
@@ -134,18 +119,13 @@ const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ onClick }) => (
 );
 
 // Secondary: external developer-page link (next to titles)
-interface GooglePlayLinkProps {
-  href?: string;
-  stopClick?: boolean;
-}
-
-const GooglePlayLink: React.FC<GooglePlayLinkProps> = ({ href, stopClick = true }) => (
+const GooglePlayLink = ({ href, stopClick = true }) => (
   <a
     href={href || "https://play.google.com/console"}
     target="_blank"
     rel="noopener noreferrer"
     onClick={stopClick ? (e) => e.stopPropagation() : undefined}
-    className="inline-flex items-center gap-2 rounded-lg border border-marketplace-border bg-marketplace-surface px-2.5 py-1.5 text-[13px] font-semibold text-white hover:bg-marketplace-surface-hover focus:outline-none focus:ring-2 focus:ring-white/20"
+    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[13px] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
     aria-label="Visit developer page"
   >
     <LinkIcon className="h-4 w-4" />
@@ -154,17 +134,12 @@ const GooglePlayLink: React.FC<GooglePlayLinkProps> = ({ href, stopClick = true 
 );
 
 // Compact button for Admins list
-interface WhatsAppMiniProps {
-  onClick: () => void;
-  className?: string;
-}
-
-const WhatsAppMini: React.FC<WhatsAppMiniProps> = ({ onClick, className }) => (
+const WhatsAppMini = ({ onClick, className }) => (
   <button
     type="button"
     onClick={onClick}
     className={cx(
-      "inline-flex items-center justify-center gap-1 rounded-lg bg-whatsapp/90 h-9 min-w-[128px] px-3.5 text-sm font-semibold text-black hover:bg-whatsapp-hover focus:outline-none focus:ring-2 focus:ring-success-border",
+      "inline-flex items-center justify-center gap-1 rounded-lg bg-emerald-500/90 h-9 min-w-[128px] px-3.5 text-sm font-semibold text-black hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300",
       className
     )}
     aria-label="Start WhatsApp chat"
@@ -175,12 +150,7 @@ const WhatsAppMini: React.FC<WhatsAppMiniProps> = ({ onClick, className }) => (
 );
 
 // Avatar (initials fallback)
-interface AvatarProps {
-  name?: string;
-  src?: string;
-}
-
-const Avatar: React.FC<AvatarProps> = ({ name = "?", src }) => {
+const Avatar = ({ name = "?", src }) => {
   const initials = (name || "?")
     .split(" ")
     .map((n) => n[0])
@@ -189,7 +159,7 @@ const Avatar: React.FC<AvatarProps> = ({ name = "?", src }) => {
     .join("")
     .toUpperCase();
   return (
-    <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-marketplace-border bg-marketplace-surface">
+    <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10">
       {src ? (
         <img src={src} alt={name} className="h-full w-full object-cover" />
       ) : (
@@ -203,7 +173,7 @@ const Avatar: React.FC<AvatarProps> = ({ name = "?", src }) => {
 const SELLER_CODE_KEY = "seller_code";
 const SELLER_CODE_REGEX = /^SK-[A-Z2-9]{5}(?:-[A-Z2-9]{5}){3}$/;
 
-function generateSellerCode(): string {
+function generateSellerCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no O/0/I/1
   const groups = [];
   for (let g = 0; g < 4; g++) {
@@ -214,19 +184,19 @@ function generateSellerCode(): string {
   return `SK-${groups.join("-")}`;
 }
 
-function saveSellerCode(code: string): void {
+function saveSellerCode(code) {
   try {
     localStorage.setItem(SELLER_CODE_KEY, code);
   } catch (e) {}
 }
-function loadSellerCode(): string {
+function loadSellerCode() {
   try {
     return localStorage.getItem(SELLER_CODE_KEY) || "";
   } catch (e) {
     return "";
   }
 }
-async function copyToClipboard(text: string): Promise<boolean> {
+async function copyToClipboard(text) {
   try {
     if (navigator?.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
@@ -247,39 +217,13 @@ async function copyToClipboard(text: string): Promise<boolean> {
 }
 console.assert(SELLER_CODE_REGEX.test("SK-ABCDE-ABCDE-ABCDE-ABCDE"), "seller code regex failed");
 
-// ---------- Types ----------
-interface AccountStats {
-  apps: number;
-  live: number;
-  suspended: number;
-}
-
-interface Account {
-  id: string;
-  title: string;
-  subtitle: string;
-  verified: boolean;
-  country: string;
-  year: number | string;
-  price: number;
-  stats: AccountStats;
-  playUrl: string;
-  images?: string[];
-}
-
 // ---------- Card (Listing) ----------
-interface CardProps {
-  account: Account;
-  onChat: () => void;
-  onOpen: () => void;
-}
-
-const Card: React.FC<CardProps> = ({ account, onChat, onOpen }) => {
+const Card = ({ account, onChat, onOpen }) => {
   const [deal, setDeal] = useState("instant");
 
   return (
     <article
-      className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.03)_inset] hover:bg-marketplace-surface-hover transition cursor-pointer"
+      className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.03)_inset] hover:bg-white/[0.05] transition cursor-pointer"
       role="button"
       onClick={onOpen}
     >
@@ -299,7 +243,7 @@ const Card: React.FC<CardProps> = ({ account, onChat, onOpen }) => {
             <GooglePlayLink href={account.playUrl} />
           </div>
         </div>
-        <span className="shrink-0 whitespace-nowrap rounded-full border border-marketplace-border bg-marketplace-surface px-3 py-1.5 text-[14px] font-semibold text-white/90">
+        <span className="shrink-0 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[14px] font-semibold text-white/90">
           {formatUSD(account.price)}
         </span>
       </header>
@@ -318,7 +262,8 @@ const Card: React.FC<CardProps> = ({ account, onChat, onOpen }) => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <DealToggle value={deal} onChange={setDeal} />
         <WhatsAppButton
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             onChat();
           }}
         />
@@ -328,16 +273,8 @@ const Card: React.FC<CardProps> = ({ account, onChat, onOpen }) => {
 };
 
 // ---------- TopBar & Tabs ----------
-interface TopBarProps {
-  title: string;
-  search: string;
-  setSearch: (search: string) => void;
-  showSearch?: boolean;
-  onBack?: () => void;
-}
-
-const TopBar: React.FC<TopBarProps> = ({ title, search, setSearch, showSearch = true, onBack }) => (
-  <div className="sticky top-0 z-10 bg-backdrop-blur backdrop-blur supports-[backdrop-filter]:bg-backdrop-blur-light">
+const TopBar = ({ title, search, setSearch, showSearch = true, onBack }) => (
+  <div className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/60">
     <div className="mx-auto w-full max-w-[480px] px-4 pt-3 pb-2">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -354,7 +291,7 @@ const TopBar: React.FC<TopBarProps> = ({ title, search, setSearch, showSearch = 
         </div>
       </div>
       {showSearch && (
-        <label className="group flex items-center gap-2 rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 focus-within:ring-2 focus-within:ring-white/20">
+        <label className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 focus-within:ring-2 focus-within:ring-white/20">
           <Search className="h-5 w-5 text-white/50" />
           <input
             value={search}
@@ -369,12 +306,7 @@ const TopBar: React.FC<TopBarProps> = ({ title, search, setSearch, showSearch = 
   </div>
 );
 
-interface TabBarProps {
-  active: string;
-  onChange: (key: string) => void;
-}
-
-const TabBar: React.FC<TabBarProps> = ({ active, onChange }) => {
+const TabBar = ({ active, onChange }) => {
   const tabs = [
     { key: "sale", label: "For Sale", icon: List },
     { key: "admins", label: "Admins", icon: Shield },
@@ -383,7 +315,7 @@ const TabBar: React.FC<TabBarProps> = ({ active, onChange }) => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-marketplace-border bg-backdrop-blur backdrop-blur supports-[backdrop-filter]:bg-backdrop-blur-light">
+    <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-white/10 bg-neutral-950/90 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/60">
       <div className="mx-auto grid w-full max-w-[480px] grid-cols-4 gap-1 px-2 py-2">
         {tabs.map((t) => {
           const Icon = t.icon;
@@ -409,12 +341,7 @@ const TabBar: React.FC<TabBarProps> = ({ active, onChange }) => {
 };
 
 // ---------- Details page ----------
-interface ScreenshotSliderProps {
-  images?: string[];
-  labels?: string[];
-}
-
-const ScreenshotSlider: React.FC<ScreenshotSliderProps> = ({ images = [], labels = [] }) => {
+const ScreenshotSlider = ({ images = [], labels = [] }) => {
   const [index, setIndex] = React.useState(0);
   const slides = labels.map((label, i) => ({
     label,
@@ -434,10 +361,10 @@ const ScreenshotSlider: React.FC<ScreenshotSliderProps> = ({ images = [], labels
       )}`,
   }));
   const count = slides.length || 1;
-  const go = (dir: number) => setIndex((i) => (i + dir + count) % count);
+  const go = (dir) => setIndex((i) => (i + dir + count) % count);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-marketplace-border bg-marketplace-surface">
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
       <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${index * 100}%)` }}>
         {slides.map((s, i) => (
           <figure key={i} className="min-w-full">
@@ -473,12 +400,7 @@ const ScreenshotSlider: React.FC<ScreenshotSliderProps> = ({ images = [], labels
   );
 };
 
-interface DetailsScreenProps {
-  account: Account;
-  onChat: () => void;
-}
-
-const DetailsScreen: React.FC<DetailsScreenProps> = ({ account, onChat }) => {
+const DetailsScreen = ({ account, onChat }) => {
   const [deal, setDeal] = useState("instant");
 
   const shots = [
@@ -491,7 +413,7 @@ const DetailsScreen: React.FC<DetailsScreenProps> = ({ account, onChat }) => {
   return (
     <section className="grid gap-4">
       {/* Header card */}
-      <article className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-4">
+      <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
         <header className="mb-3 flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 min-w-0">
@@ -508,7 +430,7 @@ const DetailsScreen: React.FC<DetailsScreenProps> = ({ account, onChat }) => {
               <GooglePlayLink href={account.playUrl} stopClick={false} />
             </div>
           </div>
-          <span className="shrink-0 whitespace-nowrap rounded-full border border-marketplace-border bg-marketplace-surface px-3 py-1.5 text-[14px] font-semibold text-white/90">
+          <span className="shrink-0 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[14px] font-semibold text-white/90">
             {formatUSD(account.price)}
           </span>
         </header>
@@ -541,16 +463,12 @@ const HalfStar = () => (
   <span className="relative inline-block h-5 w-5 align-middle">
     <Star className="h-5 w-5 text-white/25" fill="none" strokeWidth={1.5} />
     <span className="absolute inset-0 overflow-hidden" style={{ width: "50%" }}>
-      <Star className="h-5 w-5 text-star" fill="currentColor" stroke="none" />
+      <Star className="h-5 w-5 text-yellow-400" fill="currentColor" stroke="none" />
     </span>
   </span>
 );
 
-interface StarRowProps {
-  rating?: number;
-}
-
-const StarRow: React.FC<StarRowProps> = ({ rating = 4.5 }) => {
+const StarRow = ({ rating = 4.5 }) => {
   const full = Math.floor(rating);
   // For any rating between 4 and 5 (exclusive), show a half star.
   const needsHalf = rating < 5 && rating >= 4;
@@ -564,7 +482,7 @@ const StarRow: React.FC<StarRowProps> = ({ rating = 4.5 }) => {
     <div className="flex items-center gap-1">
       {items.map((t, i) =>
         t === "full" ? (
-          <Star key={i} className="h-5 w-5 text-star" fill="currentColor" stroke="none" />
+          <Star key={i} className="h-5 w-5 text-yellow-400" fill="currentColor" stroke="none" />
         ) : t === "half" ? (
           <HalfStar key={i} />
         ) : (
@@ -589,7 +507,7 @@ const AdminsScreen = () => {
   return (
     <section className="grid gap-3">
       {admins.filter(ad => !EXCLUDED_ADMINS.includes(ad.name)).map((ad, idx) => (
-        <article key={idx} className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-4 hover:bg-marketplace-surface-hover transition">
+        <article key={idx} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 hover:bg-white/[0.05] transition">
           {/* Row 1: Avatar + Name + Stars */}
           <div className="grid grid-cols-[auto_1fr] items-center gap-3">
             <Avatar name={ad.name} src={ad.photo} />
@@ -599,7 +517,7 @@ const AdminsScreen = () => {
                 <div className="flex min-w-0 items-center gap-2">
                   <span className="flex-1 min-w-0 truncate text-[17px] font-semibold">{ad.name}</span>
                   {idx < admins.length - 2 && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-verified-border bg-verified-muted px-2 py-0.5 text-xs font-semibold text-sky-300">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-xs font-semibold text-sky-300">
                       <BadgeCheck className="h-4 w-4" />
                       Verified
                     </span>
@@ -617,7 +535,7 @@ const AdminsScreen = () => {
             <WhatsAppMini className="flex-1" onClick={() => alert(`Start WhatsApp chat with ${ad.name}`)} />
             <button
               type="button"
-              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg border border-marketplace-border h-8 min-w-[88px] px-3 text-xs font-medium text-white/60 hover:bg-marketplace-surface focus:outline-none focus:ring-1 focus:ring-white/20"
+              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg border border-white/10 h-8 min-w-[88px] px-3 text-xs font-medium text-white/60 hover:bg-white/5 focus:outline-none focus:ring-1 focus:ring-white/20"
               aria-label={`Report ${ad.name}`}
             >
               <Flag className="h-3.5 w-3.5 text-white/70" />
@@ -631,20 +549,6 @@ const AdminsScreen = () => {
 };
 
 // ---------- Sell screen ----------
-interface ListingForm {
-  title: string;
-  country: string;
-  year: string;
-  price: string;
-  verified: boolean;
-  deal: string;
-  apps: string;
-  live: string;
-  suspended: string;
-  playUrl: string;
-  whatsapp: string;
-}
-
 const SellScreen = () => {
   const existing = loadSellerCode();
   const [mode, setMode] = useState(existing ? "unlock" : "setup"); // setup | unlock | ready
@@ -655,7 +559,7 @@ const SellScreen = () => {
   const [msg, setMsg] = useState("");
 
   // simple listing form (enabled when mode === 'ready')
-  const [form, setForm] = useState<ListingForm>({
+  const [form, setForm] = useState({
     title: "Google Play Account",
     country: "",
     year: "",
@@ -670,7 +574,7 @@ const SellScreen = () => {
   });
 
   // Seller's existing listings (local/demo)
-  const [sellerListings, setSellerListings] = useState<any[]>([]);
+  const [sellerListings, setSellerListings] = useState([]);
   const seedListings = () => {
     if (sellerListings.length) return;
     const pool = [
@@ -715,7 +619,7 @@ const SellScreen = () => {
     setMsg("");
   };
 
-  const onSubmitListing = (e: React.FormEvent) => {
+  const onSubmitListing = (e) => {
     e.preventDefault();
     const newItem = {
       title: form.title || "Google Play Account",
@@ -740,14 +644,14 @@ const SellScreen = () => {
     <section className="grid gap-3">
       {/* Card: Account creation or login via code */}
       {mode !== "ready" && (
-        <article className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-4">
+        <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <h3 className="text-[17px] font-semibold inline-flex items-center gap-2">
             <KeyRound className="h-5 w-5" /> Create new account or Login
           </h3>
 
           {/* Segmented switch */}
           <div className="mt-3">
-            <div className="inline-flex rounded-full bg-marketplace-surface p-0.5 border border-marketplace-border">
+            <div className="inline-flex rounded-full bg-white/5 p-0.5 border border-white/10">
               <button
                 type="button"
                 onClick={() => setMode("setup")}
@@ -780,16 +684,16 @@ const SellScreen = () => {
               )}
               {code && (
                 <div className="grid gap-3">
-                  <div className="rounded-xl border border-marketplace-border bg-black/40 p-3">
+                  <div className="rounded-xl border border-white/10 bg-black/40 p-3">
                     <p className="text-sm text-white/70">Your seller code (keep it safe):</p>
                     <div className="mt-2 flex items-center justify-between gap-3">
-                      <code className="select-all rounded-lg bg-marketplace-surface px-3 py-2 text-base tracking-widest">{code}</code>
+                      <code className="select-all rounded-lg bg-white/5 px-3 py-2 text-base tracking-widest">{code}</code>
                       <button
                         onClick={async () => {
                           const ok = await copyToClipboard(code);
                           setCopied(!!ok);
                         }}
-                        className="rounded-lg border border-marketplace-border px-3 py-2 text-sm hover:bg-marketplace-surface"
+                        className="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5"
                       >
                         <Clipboard className="h-4 w-4 inline mr-2" /> Copy
                       </button>
@@ -800,7 +704,7 @@ const SellScreen = () => {
                     </label>
                   </div>
                   {msg && <p className="text-sm text-red-300">{msg}</p>}
-                  <button onClick={onContinueFromSetup} className="w-fit rounded-xl bg-whatsapp text-black px-5 py-2.5 text-base font-semibold">
+                  <button onClick={onContinueFromSetup} className="w-fit rounded-xl bg-emerald-500 text-black px-5 py-2.5 text-base font-semibold">
                     <CheckCircle2 className="h-5 w-5 inline mr-2" /> Start selling
                   </button>
                 </div>
@@ -815,12 +719,12 @@ const SellScreen = () => {
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                 placeholder="SK-ABCDE-ABCDE-ABCDE-ABCDE"
-                className="w-full rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base placeholder:text-white/40 focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base placeholder:text-white/40 focus:outline-none"
               />
               {msg && <p className="text-sm text-red-300">{msg}</p>}
               <div className="flex items-center gap-2">
                 <button onClick={onUnlock} className="rounded-xl bg-white text-black px-5 py-2.5 text-base font-semibold">Login</button>
-                <button onClick={onCreateCode} className="rounded-xl border border-marketplace-border px-5 py-2.5 text-base">Create new account</button>
+                <button onClick={onCreateCode} className="rounded-xl border border-white/10 px-5 py-2.5 text-base">Create new account</button>
               </div>
             </div>
           )}
@@ -831,31 +735,28 @@ const SellScreen = () => {
       {mode === "ready" && (
         <>
           {/* Compact status card on top */}
-          <article className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-3">
+          <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="inline-flex items-center gap-2 text-emerald-300">
                 <CheckCircle2 className="h-4 w-4" />
                 <span className="text-sm">Seller access connected</span>
               </div>
-              <div className="flex items-center gap-2">
-                <code className="rounded-md bg-marketplace-surface px-2 py-1 text-xs tracking-widest text-white/70">{maskCode(loadSellerCode())}</code>
-                <button onClick={onLogout} className="rounded-lg border border-marketplace-border px-3 py-1.5 text-xs text-white/80 hover:bg-marketplace-surface">Logout</button>
-              </div>
+              <div className="flex items-center gap-2"><code className="rounded-md bg-white/5 px-2 py-1 text-xs tracking-widest text-white/70">{maskCode(loadSellerCode())}</code><button onClick={onLogout} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5">Logout</button></div>
             </div>
           </article>
 
           {/* Your listings first */}
-          <article className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-4">
+          <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <h4 className="text-[16px] font-semibold">Your listings</h4>
             <div className="mt-2 grid gap-2">
               {sellerListings.map((it, i) => (
-                <article key={i} className="rounded-xl border border-marketplace-border bg-marketplace-surface p-3">
+                <article key={i} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex items-center gap-2">
                       <strong className="truncate">{it.title}</strong>
                       {it.playUrl && <GooglePlayLink href={it.playUrl} />}
                     </div>
-                    <span className="shrink-0 whitespace-nowrap rounded-full border border-marketplace-border bg-marketplace-surface px-3 py-1 text-[13px] font-semibold text-white/90">
+                    <span className="shrink-0 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[13px] font-semibold text-white/90">
                       {formatUSD(it.price)}
                     </span>
                   </div>
@@ -880,7 +781,7 @@ const SellScreen = () => {
           </article>
 
           {/* Create Listing after listings */}
-          <article className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-4">
+          <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <h3 className="text-[17px] font-semibold">Create Listing</h3>
             <form onSubmit={onSubmitListing} className="mt-3 grid gap-3">
               <label className="grid gap-1">
@@ -888,7 +789,7 @@ const SellScreen = () => {
                 <input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                 />
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -897,7 +798,7 @@ const SellScreen = () => {
                   <input
                     value={form.country}
                     onChange={(e) => setForm({ ...form, country: e.target.value })}
-                    className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                   />
                 </label>
                 <label className="grid gap-1">
@@ -905,7 +806,7 @@ const SellScreen = () => {
                   <input
                     value={form.year}
                     onChange={(e) => setForm({ ...form, year: e.target.value })}
-                    className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                   />
                 </label>
               </div>
@@ -914,7 +815,7 @@ const SellScreen = () => {
                 <input
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, "") })}
-                  className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                 />
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -924,7 +825,7 @@ const SellScreen = () => {
                     inputMode="numeric"
                     value={form.apps}
                     onChange={(e) => setForm({ ...form, apps: e.target.value.replace(/[^0-9]/g, "") })}
-                    className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                   />
                 </label>
                 <label className="grid gap-1">
@@ -933,7 +834,7 @@ const SellScreen = () => {
                     inputMode="numeric"
                     value={form.live}
                     onChange={(e) => setForm({ ...form, live: e.target.value.replace(/[^0-9]/g, "") })}
-                    className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                   />
                 </label>
                 <label className="grid gap-1">
@@ -942,7 +843,7 @@ const SellScreen = () => {
                     inputMode="numeric"
                     value={form.suspended}
                     onChange={(e) => setForm({ ...form, suspended: e.target.value.replace(/[^0-9]/g, "") })}
-                    className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                   />
                 </label>
               </div>
@@ -952,7 +853,7 @@ const SellScreen = () => {
                   value={form.playUrl}
                   onChange={(e) => setForm({ ...form, playUrl: e.target.value })}
                   placeholder="https://play.google.com/store/apps/dev?id=..."
-                  className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                 />
               </label>
               <label className="grid gap-1">
@@ -961,7 +862,7 @@ const SellScreen = () => {
                   value={form.whatsapp}
                   onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
                   placeholder="+212 6.. or +34 ..."
-                  className="rounded-xl border border-marketplace-border bg-marketplace-surface px-3 py-2 text-base focus:outline-none w-full"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base focus:outline-none w-full"
                 />
               </label>
               <label className="mt-1 inline-flex items-center gap-3 text-base text-white/90">
@@ -990,7 +891,7 @@ const SellScreen = () => {
 
 const SettingsScreen = () => (
   <section className="grid gap-3">
-    <article className="rounded-2xl border border-marketplace-border bg-marketplace-surface p-4">
+    <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
       <h3 className="text-[17px] font-semibold">Settings</h3>
       <p className="mt-1 text-base text-white/70">Dark theme · Notifications · Privacy</p>
     </article>
@@ -1028,14 +929,14 @@ const COUNTRIES_POOL = [
   { name: "South Africa", code: "za" },
   { name: "Algeria", code: "dz" },
 ];
-function randi(min: number, max: number): number {
+function randi(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-function pick<T>(arr: T[]): T {
+function pick(arr) {
   return arr[randi(0, arr.length - 1)];
 }
-function makeRandomAccounts(n: number, demoImages: string[]): Account[] {
-  const out: Account[] = [];
+function makeRandomAccounts(n, demoImages) {
+  const out = [];
   for (let i = 0; i < n; i++) {
     const c = pick(COUNTRIES_POOL);
     const year = randi(2018, 2023);
@@ -1064,7 +965,7 @@ function makeRandomAccounts(n: number, demoImages: string[]): Account[] {
 export default function Index() {
   const [active, setActive] = useState("sale");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<Account | null>(null);
+  const [selected, setSelected] = useState(null);
 
   // Default screenshots for all accounts (fixed the unterminated array)
   const demoImages = [
@@ -1081,11 +982,11 @@ export default function Index() {
     return accounts.filter((a) => `${a.title} ${a.subtitle} ${a.country} ${a.year}`.toLowerCase().includes(q));
   }, [accounts, search]);
 
-  const handleChat = (id: string) => {
+  const handleChat = (id) => {
     alert(`Start WhatsApp chat for listing: ${id}`);
   };
 
-  const titles: Record<string, string> = {
+  const titles = {
     sale: "Accounts for Sale",
     admins: "Admins",
     sell: "Sell Your Account",
@@ -1095,7 +996,7 @@ export default function Index() {
   const inDetails = !!selected;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-neutral-950 text-white">
       {/* Top bar */}
       <TopBar
         title={inDetails ? selected.title : titles[active]}
