@@ -1,1 +1,106 @@
 project_id = "hxwdzbdonwhcunjyttjx"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+enabled = true
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[realtime]
+enabled = true
+ip_version = "ipv4"
+port = 54323
+max_header_length = 4096
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1:54321"
+openai_api_key = "env(OPENAI_API_KEY)"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+port = 54321
+file_size_limit = "50MiB"
+image_transformation = { enabled = true }
+
+[auth]
+enabled = true
+port = 54321
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["https://127.0.0.1:3000"]
+jwt_expiry = 3600
+enable_signup = true
+enable_email_confirmations = false
+enable_sms_confirmations = false
+min_password_length = 6
+enable_anonymous_sign_ins = false
+enable_third_party_auth = false
+hook_send_sms_secrets = []
+hook_send_email_secrets = []
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+secure_nonce = true
+template = {}
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+template = ""
+
+[edge_runtime]
+enabled = true
+port = 54321
+inspector_port = 8083
+
+[functions]
+enabled = true
+verify_jwt = true
+
+# Edge Functions Configuration
+[functions.auth-login-with-code]
+verify_jwt = false
+
+[functions.admin-issue-seller-code]
+verify_jwt = true
+
+[functions.images-get-signed-url]
+verify_jwt = true
+
+[functions.report]
+verify_jwt = false
+
+[functions.helpers-whatsapp-link]
+verify_jwt = false
+
+[analytics]
+enabled = false
+port = 54327
+vector_port = 54328
+gw_port = 54329
+kb_port = 54330
+gw_log_level = "info"
+bigquery_project_id = ""
