@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   // Tab icons
   List,
@@ -217,19 +218,13 @@ async function copyToClipboard(text) {
 }
 console.assert(SELLER_CODE_REGEX.test("SK-ABCDE-ABCDE-ABCDE-ABCDE"), "seller code regex failed");
 
-function openWhatsApp(args = {}) {
+function openWhatsApp(phone) {
   try {
-    const { phone, text } = args as any;
-    const encodedText = encodeURIComponent(text || "");
     if (phone && typeof phone === "string") {
       let cleaned = phone.replace(/\D/g, ""); // wa.me expects digits only
-      const qs = encodedText ? `?text=${encodedText}` : "";
-      const url = `https://wa.me/${cleaned}${qs}`;
+      const url = `https://wa.me/${cleaned}`;
       window.open(url, "_blank", "noopener,noreferrer");
-      return;
     }
-    const url = `https://wa.me/${encodedText ? `?text=${encodedText}` : ""}`;
-    window.open(url, "_blank", "noopener,noreferrer");
   } catch (err) {
     alert("Could not open WhatsApp. Please check your number or device.");
   }
@@ -576,13 +571,9 @@ const AdminsScreen = () => {
 
 // ---------- Sell screen ----------
 const SellScreen = () => {
-  const existing = loadSellerCode();
-  const [mode, setMode] = useState(existing ? "unlock" : "setup"); // setup | unlock | ready
-  const [code, setCode] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [inputCode, setInputCode] = useState("");
-  const [msg, setMsg] = useState("");
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // simple listing form (enabled when mode === 'ready')
   const [form, setForm] = useState({
@@ -601,6 +592,25 @@ const SellScreen = () => {
 
   // Seller's existing listings (local/demo)
   const [sellerListings, setSellerListings] = useState([]);
+  
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const seedListings = () => {
     if (sellerListings.length) return;
     const pool = [
@@ -611,39 +621,29 @@ const SellScreen = () => {
     setSellerListings(pool);
   };
 
-  const onCreateCode = () => {
-    const c = generateSellerCode();
-    setCode(c);
-    setCopied(false);
-    setSaved(false);
-    setMode("setup");
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+      if (error) console.error('Login error:', error);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
-  const onContinueFromSetup = () => {
-    if (!code || !SELLER_CODE_REGEX.test(code)) return setMsg("Code not generated");
-    if (!saved) return setMsg("Please confirm you saved the code.");
-    saveSellerCode(code);
-    setMsg("");
-    setMode("ready");
-    seedListings();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
   };
 
-  const onUnlock = () => {
-    if (!SELLER_CODE_REGEX.test(inputCode)) return setMsg("Invalid code format");
-    const stored = loadSellerCode();
-    if (stored && stored !== inputCode) return setMsg("Code doesn't match this device");
-    saveSellerCode(inputCode);
-    setMsg("");
-    setMode("ready");
-    seedListings();
-  };
-
-  const onLogout = () => {
-    try { localStorage.removeItem(SELLER_CODE_KEY); } catch (e) {}
-    setMode("unlock");
-    setInputCode("");
-    setMsg("");
-  };
+  useEffect(() => {
+    if (user) {
+      seedListings();
+    }
+  }, [user]);
 
   const onSubmitListing = (e) => {
     e.preventDefault();
@@ -666,108 +666,50 @@ const SellScreen = () => {
     setForm({ title: "Google Play Account", country: "", year: "", price: "", verified: true, deal: "instant", apps: "", live: "", suspended: "", playUrl: "", whatsapp: "" });
   };
 
+  if (loading) {
+    return (
+      <section className="grid gap-3">
+        <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <p className="text-center text-white/70">Loading...</p>
+        </article>
+      </section>
+    );
+  }
+
   return (
     <section className="grid gap-3">
-      {/* Card: Account creation or login via code */}
-      {mode !== "ready" && (
+      {/* Google Auth */}
+      {!user && (
         <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <h3 className="text-[17px] font-semibold inline-flex items-center gap-2">
-            <KeyRound className="h-5 w-5" /> Create new account or Login
+          <h3 className="text-[17px] font-semibold inline-flex items-center gap-2 mb-3">
+            <KeyRound className="h-5 w-5" /> Sign in or create account
           </h3>
-
-          {/* Segmented switch */}
-          <div className="mt-3">
-            <div className="inline-flex rounded-full bg-white/5 p-0.5 border border-white/10">
-              <button
-                type="button"
-                onClick={() => setMode("setup")}
-                className={cx(
-                  "min-w-[150px] px-4 py-2 text-[14px] font-medium rounded-full",
-                  mode === "setup" ? "bg-white text-black" : "text-white/80 hover:text-white"
-                )}
-              >
-                Create new account
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("unlock")}
-                className={cx(
-                  "min-w-[120px] px-4 py-2 text-[14px] font-medium rounded-full",
-                  mode === "unlock" ? "bg-white text-black" : "text-white/80 hover:text-white"
-                )}
-              >
-                Login
-              </button>
-            </div>
-          </div>
-
-          {mode === "setup" && (
-            <div className="mt-3 grid gap-3">
-              {!code && (
-                <button onClick={onCreateCode} className="w-fit rounded-xl bg-white text-black px-5 py-2.5 text-base font-semibold">
-                  Generate account code
-                </button>
-              )}
-              {code && (
-                <div className="grid gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/40 p-3">
-                    <p className="text-sm text-white/70">Your seller code (keep it safe):</p>
-                    <div className="mt-2 flex items-center justify-between gap-3">
-                      <code className="select-all rounded-lg bg-white/5 px-3 py-2 text-base tracking-widest">{code}</code>
-                      <button
-                        onClick={async () => {
-                          const ok = await copyToClipboard(code);
-                          setCopied(!!ok);
-                        }}
-                        className="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5"
-                      >
-                        <Clipboard className="h-4 w-4 inline mr-2" /> Copy
-                      </button>
-                    </div>
-                    <label className="mt-2 flex items-center gap-2 text-sm text-white/80">
-                      <input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} />
-                      I saved this code securely.
-                    </label>
-                  </div>
-                  {msg && <p className="text-sm text-red-300">{msg}</p>}
-                  <button onClick={onContinueFromSetup} className="w-fit rounded-xl bg-emerald-500 text-black px-5 py-2.5 text-base font-semibold">
-                    <CheckCircle2 className="h-5 w-5 inline mr-2" /> Start selling
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {mode === "unlock" && (
-            <div className="mt-3 grid gap-3">
-              <p className="text-sm text-white/70">Paste your seller code to continue.</p>
-              <input
-                value={inputCode}
-                onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-                placeholder="SK-ABCDE-ABCDE-ABCDE-ABCDE"
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-base placeholder:text-white/40 focus:outline-none"
-              />
-              {msg && <p className="text-sm text-red-300">{msg}</p>}
-              <div className="flex items-center gap-2">
-                <button onClick={onUnlock} className="rounded-xl bg-white text-black px-5 py-2.5 text-base font-semibold">Login</button>
-                <button onClick={onCreateCode} className="rounded-xl border border-white/10 px-5 py-2.5 text-base">Create new account</button>
-              </div>
-            </div>
-          )}
+          <button 
+            onClick={handleGoogleLogin}
+            className="w-full rounded-xl bg-white text-black px-5 py-2.5 text-base font-semibold inline-flex items-center justify-center gap-2"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+          </button>
         </article>
       )}
 
-      {/* When ready: top status, then listings, then create form */}
-      {mode === "ready" && (
+      {/* When signed in: listings and create form */}
+      {user && (
         <>
           {/* Compact status card on top */}
           <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="inline-flex items-center gap-2 text-emerald-300">
                 <CheckCircle2 className="h-4 w-4" />
-                <span className="text-sm">Seller access connected</span>
+                <span className="text-sm">Signed in as {user.email}</span>
               </div>
-              <div className="flex items-center gap-2"><code className="rounded-md bg-white/5 px-2 py-1 text-xs tracking-widest text-white/70">{maskCode(loadSellerCode())}</code><button onClick={onLogout} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5">Logout</button></div>
+              <button onClick={handleLogout} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5">Logout</button>
             </div>
           </article>
 
@@ -963,6 +905,7 @@ function pick(arr) {
 }
 function makeRandomAccounts(n, demoImages) {
   const out = [];
+  const placeholderNumbers = ["+212612345678", "+212698765432", "+212677889900", "+923001234567", "+923111234567"];
   for (let i = 0; i < n; i++) {
     const c = pick(COUNTRIES_POOL);
     const year = randi(2018, 2023);
@@ -983,6 +926,7 @@ function makeRandomAccounts(n, demoImages) {
       stats: { apps, live, suspended },
       playUrl: pick(GP_LINKS_POOL),
       images: demoImages,
+      whatsapp: pick(placeholderNumbers),
     });
   }
   return out;
@@ -1009,10 +953,8 @@ export default function Index() {
   }, [accounts, search]);
 
   const handleChat = (account) => {
-    openWhatsApp({
-      phone: account?.whatsapp,
-      text: `Hi, I'm interested in your listing (${account?.country} ${account?.year}) priced at ${formatUSD(account?.price)}.`,
-    });
+    // Use placeholder number for now
+    openWhatsApp(account?.whatsapp || "+212612345678");
   };
 
   const titles = {
