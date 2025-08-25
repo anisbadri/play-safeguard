@@ -217,6 +217,24 @@ async function copyToClipboard(text) {
 }
 console.assert(SELLER_CODE_REGEX.test("SK-ABCDE-ABCDE-ABCDE-ABCDE"), "seller code regex failed");
 
+function openWhatsApp(args = {}) {
+  try {
+    const { phone, text } = args as any;
+    const encodedText = encodeURIComponent(text || "");
+    if (phone && typeof phone === "string") {
+      let cleaned = phone.replace(/\D/g, ""); // wa.me expects digits only
+      const qs = encodedText ? `?text=${encodedText}` : "";
+      const url = `https://wa.me/${cleaned}${qs}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    const url = `https://wa.me/${encodedText ? `?text=${encodedText}` : ""}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  } catch (err) {
+    alert("Could not open WhatsApp. Please check your number or device.");
+  }
+}
+
 // ---------- Card (Listing) ----------
 const Card = ({ account, onChat, onOpen }) => {
   const [deal, setDeal] = useState("instant");
@@ -496,12 +514,12 @@ const StarRow = ({ rating = 4.5 }) => {
 
 const AdminsScreen = () => {
   const admins = [
-    { name: "Qousain Khan", rating: 4.9, deals: 412, photo: "https://i.imgur.com/Xk9OqdY.png" },
-    { name: "Nauman Chaudhary", rating: 4.8, deals: 523, photo: "https://i.imgur.com/AaFiZhE.jpeg" },
-    { name: "Ad Khan", rating: 4.7, deals: 434, photo: "https://i.imgur.com/CYTG6Oa.jpeg" },
-    { name: "Sara Kettani", rating: 4.6, deals: 389 },
-    { name: "Hamza Ramzi", rating: 4.5, deals: 276 },
-    { name: "Nadia Zahra", rating: 4.4, deals: 241 },
+    { name: "Qousain Khan", rating: 4.9, deals: 412, photo: "https://i.imgur.com/Xk9OqdY.png", phone: "+923001234567" },
+    { name: "Nauman Chaudhary", rating: 4.8, deals: 523, photo: "https://i.imgur.com/AaFiZhE.jpeg", phone: "+923111234567" },
+    { name: "Ad Khan", rating: 4.7, deals: 434, photo: "https://i.imgur.com/CYTG6Oa.jpeg", phone: "+923211234567" },
+    { name: "Sara Kettani", rating: 4.6, deals: 389, phone: "+212612345678" },
+    { name: "Hamza Ramzi", rating: 4.5, deals: 276, phone: "+212698765432" },
+    { name: "Nadia Zahra", rating: 4.4, deals: 241, phone: "+212677889900" },
   ];
 
   return (
@@ -532,7 +550,15 @@ const AdminsScreen = () => {
 
           {/* Row 2: Actions only */}
           <div className="mt-3 flex items-center gap-2">
-            <WhatsAppMini className="flex-1" onClick={() => alert(`Start WhatsApp chat with ${ad.name}`)} />
+            <WhatsAppMini
+              className="flex-1"
+              onClick={() =>
+                openWhatsApp({
+                  phone: ad.phone,
+                  text: `Hi ${ad.name}, I’d like to discuss Google Play accounts.`,
+                })
+              }
+            />
             <button
               type="button"
               className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg border border-white/10 h-8 min-w-[88px] px-3 text-xs font-medium text-white/60 hover:bg-white/5 focus:outline-none focus:ring-1 focus:ring-white/20"
@@ -982,8 +1008,11 @@ export default function Index() {
     return accounts.filter((a) => `${a.title} ${a.subtitle} ${a.country} ${a.year}`.toLowerCase().includes(q));
   }, [accounts, search]);
 
-  const handleChat = (id) => {
-    alert(`Start WhatsApp chat for listing: ${id}`);
+  const handleChat = (account) => {
+    openWhatsApp({
+      phone: account?.whatsapp,
+      text: `Hi, I'm interested in your listing (${account?.country} ${account?.year}) priced at ${formatUSD(account?.price)}.`,
+    });
   };
 
   const titles = {
@@ -1009,11 +1038,11 @@ export default function Index() {
       {/* Content */}
       <main className="mx-auto w-full max-w-[480px] px-4 pb-28 pt-3">
         {inDetails ? (
-          <DetailsScreen account={selected} onChat={() => handleChat(selected.id)} />
+          <DetailsScreen account={selected} onChat={() => handleChat(selected)} />
         ) : active === "sale" ? (
           <section className="grid gap-3">
             {filtered.map((a) => (
-              <Card key={a.id} account={a} onChat={() => handleChat(a.id)} onOpen={() => setSelected(a)} />
+              <Card key={a.id} account={a} onChat={() => handleChat(a)} onOpen={() => setSelected(a)} />
             ))}
           </section>
         ) : active === "admins" ? (
