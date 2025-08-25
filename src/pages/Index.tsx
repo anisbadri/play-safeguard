@@ -969,9 +969,9 @@ export default function Index() {
 
   // Default screenshots for all accounts (fixed the unterminated array)
   const demoImages = [
-    "https://i.imgur.com/r07ZSeC.png",
-    "https://i.imgur.com/44XpjH0.png",
-    "https://i.imgur.com/PSIboCX.png",
+    "https://hxwdzbdonwhcunjyttjx.supabase.co/storage/v1/object/public/photos/123.PNG",
+    "https://hxwdzbdonwhcunjyttjx.supabase.co/storage/v1/object/public/photos/1234354.PNG",
+    "https://hxwdzbdonwhcunjyttjx.supabase.co/storage/v1/object/public/photos/dfhsdgy.PNG",
   ];
 
   const accounts = useMemo(() => makeRandomAccounts(10, demoImages), []);
